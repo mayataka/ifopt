@@ -116,6 +116,10 @@ public:
    */
   virtual Jacobian GetJacobian() const = 0;
 
+  virtual void computeValues() const = 0;
+
+  virtual void computeJacobian() const = 0;
+
   /**
    * @brief Returns the number of rows of this component.
    */
@@ -181,6 +185,9 @@ public:
   VecBound GetBounds   () const override;
   void SetVariables(const VectorXd& x) override;
   void PrintAll() const;
+
+  void computeValues() const override;
+  void computeJacobian() const override;
 
   /**
    * @brief  Access generic component with the specified name.

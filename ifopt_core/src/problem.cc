@@ -91,6 +91,7 @@ Problem::EvaluateCostFunction (const double* x)
   VectorXd g = VectorXd::Zero(1);
   if (HasCostTerms()) {
     SetVariables(x);
+    costs_.computeValues();
     g = costs_.GetValues();
   }
   return g(0);
@@ -119,6 +120,7 @@ Problem::EvaluateCostFunctionGradient (const double* x, bool use_finite_differen
       }
     } else {
       SetVariables(x);
+      costs_.computeJacobian();
       jac = costs_.GetJacobian();
     }
   }
@@ -142,6 +144,7 @@ Problem::VectorXd
 Problem::EvaluateConstraints (const double* x)
 {
   SetVariables(x);
+  constraints_.computeValues();
   return constraints_.GetValues();
 }
 
@@ -164,12 +167,14 @@ Problem::EvalNonzerosOfJacobian (const double* x, double* values)
 Problem::Jacobian
 Problem::GetJacobianOfConstraints () const
 {
+  constraints_.computeJacobian();
   return constraints_.GetJacobian();
 }
 
 Problem::Jacobian
 Problem::GetJacobianOfCosts () const
 {
+  costs_.computeJacobian();
   return costs_.GetJacobian();
 }
 

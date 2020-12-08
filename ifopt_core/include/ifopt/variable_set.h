@@ -53,6 +53,16 @@ public:
   VariableSet(int n_var, const std::string& name);
   virtual ~VariableSet() = default;
 
+  void computeValues() const override
+  {
+    // do nothing
+  }
+
+  void computeJacobian() const final
+  {
+    throw std::runtime_error("not implemented for variables");
+  }
+
   // doesn't exist for variables, generated run-time error when used.
   Jacobian GetJacobian() const final
   {

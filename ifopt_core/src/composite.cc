@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <iomanip>
 
+#include <omp.h>
+
 namespace ifopt {
 
 Component::Component (int num_rows, const std::string& name)
@@ -131,6 +133,30 @@ Composite::GetComponent (std::string name) const
   assert(false); // component with name doesn't exist, abort program
   return Component::Ptr();
 }
+
+
+
+void Composite::computeValues() const 
+{
+  const int components_size = components_.size();
+  constexpr int kNumThreads = 4;
+  #pragma omp parallel for num_threads(kNumThreads)
+  for (int i=0; i<components_size; ++i) {
+    components_.at(i)->computeValues();
+  }
+}
+
+
+void Composite::computeJacobian() const 
+{
+  const int components_size = components_.size();
+  constexpr int kNumThreads = 4;
+  #pragma omp parallel for num_threads(kNumThreads)
+  for (int i=0; i<components_size; ++i) {
+    components_.at(i)->computeJacobian();
+  }
+}
+
 
 Composite::VectorXd
 Composite::GetValues () const

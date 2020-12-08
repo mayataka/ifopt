@@ -109,13 +109,18 @@ public:
   // each set can contain multiple related constraints.
   ExConstraint(const std::string& name) : ConstraintSet(1, name) {}
 
+  void computeValues() const override 
+  {
+    g_mutable_.resize(GetRows());
+    g_mutable_.setZero();
+    Vector2d x = GetVariables()->GetComponent("var_set1")->GetValues();
+    g_mutable_(0) = std::pow(x(0),2) + x(1);
+  }
+
   // The constraint value minus the constant value "1", moved to bounds.
   VectorXd GetValues() const override
   {
-    VectorXd g(GetRows());
-    Vector2d x = GetVariables()->GetComponent("var_set1")->GetValues();
-    g(0) = std::pow(x(0),2) + x(1);
-    return g;
+    return g_mutable_;
   };
 
   // The only constraint in this set is an equality constraint to 1.
@@ -126,6 +131,11 @@ public:
     VecBound b(GetRows());
     b.at(0) = Bounds(1.0, 1.0);
     return b;
+  }
+  
+  void computeJacobian() const override 
+  {
+    // do nothing
   }
 
   // This function provides the first derivative of the constraints.
@@ -146,19 +156,36 @@ public:
       jac_block.coeffRef(0, 1) = 1.0;      // derivative of first constraint w.r.t x1
     }
   }
+
+private:
+  mutable VectorXd g_mutable_;
 };
 
 
 class ExCost: public CostTerm {
 public:
-  ExCost() : ExCost("cost_term1") {}
-  ExCost(const std::string& name) : CostTerm(name) {}
+  ExCost() : ExCost("cost_term1") { 
+    cost_mutable_ = 0.0;
+  }
+  ExCost(const std::string& name) : CostTerm(name) {
+    cost_mutable_ = 0.0;
+  }
+
+  void computeValues() const override 
+  {
+    Vector2d x = GetVariables()->GetComponent("var_set1")->GetValues();
+    cost_mutable_ = -std::pow(x(1)-2,2);
+  }
 
   double GetCost() const override
   {
-    Vector2d x = GetVariables()->GetComponent("var_set1")->GetValues();
-    return -std::pow(x(1)-2,2);
+    return cost_mutable_;
   };
+
+  void computeJacobian() const override
+  {
+    // do nothing
+  }
 
   void FillJacobianBlock (std::string var_set, Jacobian& jac) const override
   {
@@ -169,6 +196,9 @@ public:
       jac.coeffRef(0, 1) = -2.0*(x(1)-2.0); // derivative of cost w.r.t x1
     }
   }
+
+private:
+  mutable double cost_mutable_;
 };
 
 } // namespace opt
